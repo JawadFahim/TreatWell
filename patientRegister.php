@@ -3,7 +3,7 @@
 // Database credentials
 $servername = "localhost";
 $username = "root";
-$password = "";
+$password = "root";
 $database = "TreatWell";
 
 // Create connection

@@ -2,7 +2,7 @@
 // Database credentials
 $servername = "localhost";
 $username = "root";
-$password = "";
+$password = "root";
 $database = "TreatWell";
 
 // Create connection
@@ -38,7 +38,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (empty($username_err) && empty($password_err)) {
 
         // Prepare a SELECT statement
-        $sql = "SELECT Patient_ID, Patient_Username, Patient_Pass FROM Patient_login WHERE Patient_Username = ?";
+        $sql = "SELECT DoctorID, DoctorUsername, DoctorPassword FROM Doctor_login WHERE DoctorUsername = ?";
+
 
         if ($stmt = $conn->prepare($sql)) {
             // Bind variables to the prepared statement as parameters

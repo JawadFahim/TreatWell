@@ -1,24 +1,3 @@
-<?php
-//code for searching doctors based on specialty
-$host = 'localhost';
-$db   = 'TreatWell';
-$user = 'root';
-$pass = 'root';
-$charset = 'utf8mb4';
-
-$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
-$opt = [
-    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    PDO::ATTR_EMULATE_PREPARES   => false,
-];
-$pdo = new PDO($dsn, $user, $pass, $opt);
-
-$sql = "SELECT DISTINCT specialty FROM doctor";
-$stmt = $pdo->prepare($sql);
-$stmt->execute();
-$specialties = $stmt->fetchAll();
-?>
 
 <!DOCTYPE html>
 
@@ -27,10 +6,10 @@ $specialties = $stmt->fetchAll();
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link
-        href="https://cdn.jsdelivr.net/npm/remixicon@3.4.0/fonts/remixicon.css"
-        rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/remixicon@3.4.0/fonts/remixicon.css"
+            rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="index.css" />
     <title>TreatWell Homepage</title>
 </head>
 
@@ -41,10 +20,10 @@ $specialties = $stmt->fetchAll();
     <nav class="section__container nav__container">
         <div class="nav__logo">Treat<span>Well</span></div>
         <ul class="nav__links">
-            <li class="link"><a href="#">Find A Doctor</a></li>
-            <li class="link"><a href="#">Book Appointment</a></li>
+            <li class="link"><a href="DB_of_Doctors.php">Find A Doctor</a></li>
+            <li class="link"><a href="DB_of_Doctors.php">Book Appointment</a></li>
             <li class="link"><a href="#">Drugs</a></li>
-            <li class="link"><a href="#">Blog</a></li>
+            <li class="link"><a href="#">Health Tracker</a></li>
         </ul>
         <button class="btn">Profile</button>
     </nav>
@@ -58,12 +37,52 @@ $specialties = $stmt->fetchAll();
                 patient-centered approach, we're dedicated to your well-being. Trust
                 us with your health and experience the difference.
             </p>
-            <button class="btn">See Services</button>
+            <a href="#services" class="btn">See Services</a>
         </div>
 
+        <?php
+        $host = 'localhost';
+        $db   = 'TreatWell';
+        $user = 'root';
+        $pass = 'root';
+        $charset = 'utf8mb4';
+
+        $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
+        $opt = [
+            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES   => false,
+        ];
+        $pdo = new PDO($dsn, $user, $pass, $opt);
+
+        $selectedSpecialty = isset($_GET['specialty']) ? $_GET['specialty'] : '';
+        $searchName = isset($_GET['doctorName']) ? $_GET['doctorName'] : '';
+
+        $sql = "SELECT * FROM doctor WHERE 1";
+        if ($selectedSpecialty !== '') {
+            $sql .= " AND specialty = :specialty";
+        }
+        if ($searchName !== '') {
+            $sql .= " AND name LIKE :name";
+        }
+        $stmt = $pdo->prepare($sql);
+        if ($selectedSpecialty !== '') {
+            $stmt->bindParam(':specialty', $selectedSpecialty);
+        }
+        if ($searchName !== '') {
+            $searchName = "%$searchName%";
+            $stmt->bindParam(':name', $searchName);
+        }
+        $stmt->execute();
+        $doctorDetails = $stmt->fetchAll();
+
+        $sql = "SELECT DISTINCT specialty FROM doctor";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute();
+        $specialties = $stmt->fetchAll();
+        ?>
         <div class="header__form">
             <form action="Doctor_List.php" method="get">
-
                 <h4>Find a Doctor</h4>
                 <h3>Department</h3>
                 <select id="department" name="department">
@@ -72,13 +91,17 @@ $specialties = $stmt->fetchAll();
                         <option value="<?= htmlspecialchars($specialty['specialty']) ?>"><?= htmlspecialchars($specialty['specialty']) ?></option>
                     <?php endforeach; ?>
                 </select>
-                <button class="btn form__btn">Search by Department</button>
-                <h3>Doctor</h3>
-                <input type="text" id="doctorName" name="doctorName" placeholder="Enter Doctor's name" />
-                <button class="btn form__btn">Search by Doctor's Name</button>
+                <button class="btn form__btn" type="submit">Search by Department</button>
             </form>
         </div>
-    </div>
+        <div class="header__form">
+            <form action="Doctor_List.php" method="get">
+                <h4>Find a Doctor</h4>
+                <h3>Doctor</h3>
+                <input type="text" id="doctorName" name="doctorName" placeholder="Enter doctor's name here">
+                <button class="btn form__btn" type="submit">Search by Doctor's Name</button>
+            </form>
+        </div>
 
 
 
@@ -88,36 +111,36 @@ $specialties = $stmt->fetchAll();
 <section class="section__container service__container">
     <div class="service__header">
         <div class="service__header__content">
-            <h2 class="section__header">Our Services</h2>
-    <div class="service__grid">
-        <div class="service__card">
-            <span><i class="ri-microscope-line"></i></span>
-            <h4>Available Doctors</h4>
-            <p>
-                Accurate Diagnostics, Swift Results: Experience top-notch Laboratory
-                Testing at our facility.
-            </p>
-            <a href="#">Learn More</a>
-        </div>
-        <div class="service__card">
-            <span><i class="ri-mental-health-line"></i></span>
-            <h4>Health Check</h4>
-            <p>
-                Our thorough assessments and expert evaluations help you stay
-                proactive about your health.
-            </p>
-            <a href="#">Learn More</a>
-        </div>
-        <div class="service__card">
-            <span><i class="ri-hospital-line"></i></span>
-            <h4>General Dentistry</h4>
-            <p>
-                Experience comprehensive oral care with Dentistry. Trust us to keep
-                your smile healthy and bright.
-            </p>
-            <a href="#">Learn More</a>
-        </div>
-    </div>
+            <h2 class="section__header" id="services">Our Services</h2>
+            <div class="service__grid">
+                <div class="service__card">
+                    <span><i class="ri-microscope-line"></i></span>
+                    <h4>Available Doctors</h4>
+                    <p>
+                        Accurate Diagnostics, Swift Results: Experience top-notch Laboratory
+                        Testing at our facility.
+                    </p>
+                    <a href="#">Learn More</a>
+                </div>
+                <div class="service__card">
+                    <span><i class="ri-mental-health-line"></i></span>
+                    <h4>Health Check</h4>
+                    <p>
+                        Our thorough assessments and expert evaluations help you stay
+                        proactive about your health.
+                    </p>
+                    <a href="#">Learn More</a>
+                </div>
+                <div class="service__card">
+                    <span><i class="ri-hospital-line"></i></span>
+                    <h4>General Dentistry</h4>
+                    <p>
+                        Experience comprehensive oral care with Dentistry. Trust us to keep
+                        your smile healthy and bright.
+                    </p>
+                    <a href="#">Learn More</a>
+                </div>
+            </div>
 </section>
 <section class="section__container about__container">
     <div class="about__content">
@@ -251,7 +274,6 @@ $specialties = $stmt->fetchAll();
             <p>
                 We are honored to be a part of your healthcare journey and committed
                 to delivering compassionate, personalized, and top-notch care every
-                step of the way.
             </p>
             <p>
                 Trust us with your health, and let us work together to achieve the
@@ -297,3 +319,4 @@ $specialties = $stmt->fetchAll();
 </footer>
 </body>
 </html>
+
