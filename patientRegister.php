@@ -1,23 +1,15 @@
 <?php
 
-// Database credentials
-$servername = "localhost";
-$username = "root";
-$password = "root";
-$database = "TreatWell";
+include 'connection.php';
+global $conn;
 
-// Create connection
-$conn = new mysqli($servername, $username, $password, $database);
 
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+
 
 // Define variables and initialize with empty values
 $fullname = $username = $dob = $gender = $national_id = $address = $phone = $email = $password = $confirm_password = "";
 $fullname_err = $username_err = $dob_err = $gender_err = $national_id_err = $address_err = $phone_err = $email_err = $password_err = $confirm_password_err = "";
-
+$temp_name=$extension=$new_name="";
 // Processing form data when form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
@@ -94,50 +86,62 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    // Check input errors before inserting in database
-    if (empty($fullname_err) && empty($username_err) && empty($dob_err) && empty($gender_err) && empty($national_id_err) && empty($address_err) && empty($phone_err) && empty($email_err) && empty($password_err) && empty($confirm_password_err)) {
 
-        // Prepare an INSERT statement Patient_id
-        //Patient_fullname
-        //Patient_username
-        //Patient_pass
-        //Patient_dob
-        //Patient_gender
-        //Patient_marital
-        //Patient_NID
-        //Patient_address
-        //Patient_phone
-        //Patient_email
-        $sql = "INSERT INTO Patient_login (Patient_fullname, Patient_username, Patient_dob, Patient_gender, Patient_NID, Patient_address, Patient_phone,Patient_email, patient_pass) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        if ($stmt = $conn->prepare($sql)) {
-            // Bind variables to the prepared statement as parameters
-            $stmt->bind_param("sssssssss", $param_fullname, $param_username, $param_dob, $param_gender, $param_national_id, $param_address, $param_phone, $param_email, $param_password);
-
-            // Set parameters
-            $param_fullname = $fullname;
-            $param_username = $username;
-            $param_dob = $dob;
-            $param_gender = $gender;
-            $param_national_id = $national_id;
-            $param_address = $address;
-            $param_phone = $phone;
-            $param_email = $email;
-            $param_password = $password; // Creates a password hash
-
-            // Attempt to execute the prepared statement
-            // Attempt to execute the prepared statement
-            if ($stmt->execute()) {
-                // Redirect to login page
-                header("location: patientLogin.php");
-            }  else {
-            // Print the error to the terminal
-            echo "MySQL Error: " . $stmt->error;
-        }
-            // Close statement
-            $stmt->close();
+    if (isset($_FILES['pic'])) {
+        $target_file = basename($_FILES['pic']['name']);
+        $filename = $username.".".strtolower(pathinfo($target_file,PATHINFO_EXTENSION));
+        $tempname = $_FILES['pic']['tmp_name'];
+        $new_name = "image/patientPhoto/".$filename;
+        if (move_uploaded_file($tempname, $new_name)) {
+            echo "File has been uploaded successfully.";
+        } else {
+            echo "Failed to upload file.";
         }
     }
+    // Check input errors before inserting in database
+    // Add this in your PHP code after validating all other inputs
+    if (empty($fullname_err) && empty($username_err) && empty($dob_err) && empty($gender_err) && empty($national_id_err) && empty($address_err) && empty($phone_err) && empty($email_err) && empty($password_err) && empty($confirm_password_err)) {
+
+        // Handle the photo upload
+
+
+
+                // Prepare an INSERT statement
+                $sql = "INSERT INTO Patient_login (Patient_fullname, Patient_username, Patient_dob, Patient_gender, Patient_NID, Patient_address, Patient_phone,Patient_email, patient_pass, photo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+                if ($stmt = $conn->prepare($sql)) {
+                    // Bind variables to the prepared statement as parameters
+                    $stmt->bind_param("ssssssssss", $param_fullname, $param_username, $param_dob, $param_gender, $param_national_id, $param_address, $param_phone, $param_email, $param_password, $param_photo);
+
+                    // Set parameters
+                    $param_fullname = $fullname;
+                    $param_username = $username;
+                    $param_dob = $dob;
+                    $param_gender = $gender;
+                    $param_national_id = $national_id;
+                    $param_address = $address;
+                    $param_phone = $phone;
+                    $param_email = $email;
+                    $param_password = $password; // Creates a password hash
+                    $param_photo = $new_name; // Set the photo path
+
+                    if ($stmt->execute()) {
+                        // Redirect to login page
+                        header("location: patientLogin.php");
+                    } else {
+                        echo "Something went wrong. Please try again later.";
+                    }
+                }
+    } else {
+        die("Database connection is null.");
+    }
+
+                    // Close statement
+                    $stmt->close();
+
+
+
+
 
     // Close connection
     $conn->close();
@@ -155,7 +159,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <body style="background: url(image/patient.jpg);background-size: cover;background-position: center;">
 <div class="wrapper">
-    <form class="mt-6" action="patientRegister.php" method="POST">
+    <form class="mt-6" action="patientRegister.php" method="POST" enctype="multipart/form-data">
         <h1>Patient Register</h1>
         <div class="input-container">
             <div class="input-column">
@@ -201,6 +205,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <div class="input-box">
                     <input type="password" name="confirm_password" placeholder="Confirm Password" required>
                     <i class='bx bxs-lock-alt'></i>
+                </div>
+                
+                <div class="input-box">
+                    <input type="file" name="pic" required>
+                    <i class='bx bxs-image-add'></i>
                 </div>
             </div>
         </div>
