@@ -13,25 +13,25 @@ $opt = [
 ];
 $pdo = new PDO($dsn, $user, $pass, $opt);
 
-// Check if the department key exists in the GET parameters
-if (isset($_GET['department'])) {
-    $selectedSpecialty = $_GET['department'];
+// Check if the common_speciality key exists in the GET parameters
+if (isset($_GET['common_speciality'])) {
+    $selectedCommonSpeciality = $_GET['common_speciality'];
 
-    // Use a prepared statement to select only the doctors with the selected specialty
-    $sql = "SELECT * FROM doctor WHERE specialty = :specialty"; // Updated table name here
+    // Use a prepared statement to select only the doctors with the selected common speciality
+    $sql = "SELECT * FROM doctorinfo WHERE common_speciality = :common_speciality";
     $stmt = $pdo->prepare($sql);
-    $stmt->execute(['specialty' => $selectedSpecialty]);
+    $stmt->execute(['common_speciality' => $selectedCommonSpeciality]);
     $doctorDetails = $stmt->fetchAll();
 } elseif (isset($_GET['doctorName'])) {
     $selectedDoctorName = $_GET['doctorName'];
 
     // Use a prepared statement to select only the doctor with the selected name
-    $sql = "SELECT * FROM doctor WHERE LOWER(name) LIKE LOWER(:name)"; // Updated table name here
+    $sql = "SELECT * FROM doctorinfo WHERE LOWER(name) LIKE LOWER(:name)";
     $stmt = $pdo->prepare($sql);
     $stmt->execute(['name' => '%' . $selectedDoctorName . '%']);
     $doctorDetails = $stmt->fetchAll();
 }else {
-    // Handle the case where no specialty or doctor's name was selected
+    // Handle the case where no common speciality or doctor's name was selected
     $doctorDetails = [];
 }
 ?>
@@ -123,12 +123,12 @@ if (isset($_GET['department'])) {
     </tr>
     <?php foreach ($doctorDetails as $doctor): ?>
         <tr>
-            <td><?= htmlspecialchars($doctor['doctor_id']) ?></td>
+            <td><?= htmlspecialchars($doctor['id']) ?></td> <!-- Updated column name here -->
             <td><?= htmlspecialchars($doctor['name']) ?></td>
-            <td><?= htmlspecialchars($doctor['specialty']) ?></td>
+            <td><?= htmlspecialchars($doctor['speciality']) ?></td> <!-- Updated column name here -->
             <td>
                 <!-- "Book Appointment" button -->
-                <a href="Appointment_Page.php?doctor_id=<?= urlencode($doctor['doctor_id']) ?>&doctor_name=<?= urlencode($doctor['name']) ?>&specialty=<?= urlencode($doctor['specialty']) ?>" class="btn">Book Appointment</a>
+                <a href="Appointment_Page.php?id=<?= urlencode($doctor['id']) ?>&doctor_name=<?= urlencode($doctor['name']) ?>&speciality=<?= urlencode($doctor['speciality']) ?>" class="btn">Book Appointment</a>
             </td>
         </tr>
     <?php endforeach; ?>
