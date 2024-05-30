@@ -1,6 +1,26 @@
 <?php
 include 'connection.php';
 global $conn;
+session_start();
+$username = $_SESSION["username"];
+$user_id= $_SESSION["user_id"];
+// Get the username from the session
+$username = $_SESSION["username"];
+
+// Prepare a SQL statement to fetch the doctor's details
+$sql = "SELECT dl.DoctorName, di.address, dl.DoctorPhone
+        FROM doctor_login dl
+        JOIN doctorinfo di ON dl.regNo = di.regNo
+        WHERE dl.DoctorUsername = :username";
+
+$stmt = $conn->prepare($sql);
+$stmt->bindParam(':username', $username);
+$stmt->execute();
+
+// Fetch the doctor's details
+$doctorDetails = $stmt->fetch(PDO::FETCH_ASSOC);
+
+// Now you can use $doctorDetails['DoctorName'], $doctorDetails['address'], and $doctorDetails['DoctorPhone'] in your HTML
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (isset($_POST['patient_id'])) {
@@ -14,14 +34,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $medicines = json_decode($json_data, true);
 
         // Loop through the medicines array
-        foreach ($medicines as $medicine) {
-            // Prepare an SQL statement
-            $stmt = $conn->prepare("INSERT INTO prescriptions (patient_id, symptoms, tests, advice, medicine_name, medicine_period) VALUES (?, ?, ?, ?, ?, ?)");
+        foreach ($medicines as $medicine) {$stmt = $conn->prepare("INSERT INTO prescriptions (patient_id, symptoms, tests, advice, medicine_name, medicine_period) VALUES (:patient_id, :symptoms, :tests, :advice, :medicine_name, :medicine_period)");
 
-            // Bind the variables to the statement as parameters
-            $stmt->bind_param("isssss", $patient_id, $symptoms, $tests, $advice, $medicine['name'], $medicine['period']);
+            $stmt->bindParam(':patient_id', $patient_id);
+            $stmt->bindParam(':symptoms', $symptoms);
+            $stmt->bindParam(':tests', $tests);
+            $stmt->bindParam(':advice', $advice);
+            $stmt->bindParam(':medicine_name', $medicine['name']);
+            $stmt->bindParam(':medicine_period', $medicine['period']);
 
-            // Execute the statement
             $stmt->execute();
         }
 
@@ -31,6 +52,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Clear the formData.json file
         file_put_contents('formData.json', '');
     }
+}
+if (isset($_GET['patient_id'])) {
+    $patient_id = $_GET['patient_id'];
 }
 ?>
 
@@ -434,12 +458,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </script>
 
 
-
 </head>
 
 <body translate="no">
 <div class="wrapper">
-
+    <a href="doctor_appointment.php" class="btn">Go Back</a>
     <div class="prescription_form">
         <table class="prescription" data-prescription_id="{{ prescription_id }}" border="1">
             <tbody>
@@ -448,8 +471,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <div class="header">
                         <div class="logo"><img src="https://seeklogo.com/images/H/hospital-clinic-plus-logo-7916383C7A-seeklogo.com.png"/></div>
                         <div class="credentials">
-                            <h4>Doctor Name</h4>
-                            <p>Chamber Name</p><small>Adress</small><br/><small>Mb. 0XXXXXXXXX</small>
+                            <h4><?= htmlspecialchars($doctorDetails['DoctorName']) ?></h4>
+                            <p><?= htmlspecialchars($doctorDetails['address']) ?></p>
+                            <small>Mb. <?= htmlspecialchars($doctorDetails['DoctorPhone']) ?></small>
                         </div>
                     </div>
                 </td>
@@ -458,11 +482,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <td width="40%">
                     <div class="desease_details">
 
-                            <div class="patient_id">
-                                <h4 class="d-header">Patient ID</h4>
-                                <input class="pid" data-toggle="tooltip" data-placement="bottom" title="Enter patient ID."/>
-
-
+                        <div class="patient_id">
+                            <h4 class="d-header">Patient ID</h4>
+                            <input class="pid" data-toggle="tooltip" data-placement="bottom" title="Enter patient ID." value="<?= isset($patient_id) ? htmlspecialchars($patient_id) : '' ?>"/>
                         </div>
                         <div class="symptoms">
                             <h4 class="d-header">Symptoms</h4>
@@ -516,8 +538,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <select class="sc" data-med_id="{{med_id}}">
                     <option value="1+1+1" selected="">1+1+1</option>
                     <option value="1+0+1">1+0+1</option>
-                    <option value="0+1+1">1+1+0</option>
-                    <option value="1+0+0">0+1+1</option>
+                    <option value="0+1+1">1+1+1</option>
+                    <option value="1+0+0">1+1+1</option>
                     <option value="0+0+1">1+1+1</option>
 
                 </select>
@@ -668,6 +690,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         window.location.href = 'generate_pdf.php';
     });
 </script>
+<button onclick="goBack()">Go Back</button>
+
+
 </body>
 
 </html>
