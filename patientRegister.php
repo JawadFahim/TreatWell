@@ -152,7 +152,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register Form | Dan Aleko</title>
+    <title>Register Form | Treatwell</title>
     <link rel="stylesheet" href="css/patientRegister.css">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 </head>
@@ -206,7 +206,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <input type="password" name="confirm_password" placeholder="Confirm Password" required>
                     <i class='bx bxs-lock-alt'></i>
                 </div>
-                
+
                 <div class="input-box">
                     <input type="file" name="pic" required>
                     <i class='bx bxs-image-add'></i>

@@ -13,41 +13,30 @@ $opt = [
 ];
 $pdo = new PDO($dsn, $user, $pass, $opt);
 
-// Get the search query from the medicineCat.php page
-$search_query = isset($_GET['search_query']) ? $_GET['search_query'] : '';
+// Get the generic name from the URL
+$generic_name = isset($_GET['generic_name']) ? urldecode($_GET['generic_name']) : '';
 
 // Prepare the SQL query
-$sql = "SELECT * FROM generic WHERE generic_name LIKE :search_query";
+$sql = "SELECT brand_name, dosage_form, manufacturer FROM medicine_brand WHERE generic = :generic_name";
 $stmt = $pdo->prepare($sql);
-$stmt->bindValue(':search_query', '%' . $search_query . '%', PDO::PARAM_STR);
+$stmt->bindValue(':generic_name', $generic_name, PDO::PARAM_STR);
 $stmt->execute();
 
-
-// Fetch the results
-$results = $stmt->fetchAll();
-if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['selected_option'])) {
-    $selected_option = $_GET['selected_option'];
-    if ($selected_option == 'brand_name') {
-        header('Location: brandNameSearch.php?search_query=' . urlencode($_GET['search_query']));
-        exit;
-    } elseif ($selected_option == 'generic') {
-        header('Location: genericSearch.php?search_query=' . urlencode($_GET['search_query']));
-        exit;
-    }
-}
+// Fetch all the records
+$brands = $stmt->fetchAll();
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="css/genericNameSearch.css">
-    <title>Generic Name Search</title>
+    <link rel="stylesheet" href="css/medicineCat.css">
+    <title>Alternate Medicine Brands</title>
 </head>
 <body>
 <div class="topnav">
     <a href="patientHomepage.php">Home</a>
     <a href="medicineCat.php">Medicine Catalog</a>
-    <a href="medicineCart.php">Go to Cart</a>
+
     <div class="search-panel">
         <form action="" method="get" id="search_form">
             <select name="search_type" id="search_type">
@@ -67,13 +56,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['selected_option'])) {
 </div>
 
 <div class="container">
-    <?php foreach ($results as $result): ?>
-        <a style="text-decoration: none; color: black;" href="genericPage.php?generic_name=<?php echo urlencode($result['generic_name']); ?>">
-            <div class="box">
-                <h2><?php echo htmlspecialchars($result['generic_name']); ?></h2>
-                <p><?php echo substr(htmlspecialchars($result['indication_description']), 0, 200); ?>...</p>
-            </div>
-        </a>
+    <?php foreach ($brands as $brand): ?>
+        <div class="box">
+            <a href="brandPage.php?brand_name=<?php echo urlencode($brand['brand_name']); ?>" style="text-decoration: none; color: inherit;">
+                <h2><?php echo htmlspecialchars($brand['brand_name']); ?></h2>
+                <p><?php echo htmlspecialchars($brand['dosage_form']); ?></p>
+                <p><?php echo htmlspecialchars($brand['manufacturer']); ?></p>
+            </a>
+        </div>
     <?php endforeach; ?>
 </div>
 

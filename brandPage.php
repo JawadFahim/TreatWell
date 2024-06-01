@@ -1,9 +1,13 @@
 <?php
+session_start();
+$username = $_SESSION['username'];
+$user_id= $_SESSION['user_id'];
 $host = 'localhost';
 $db   = 'treatwell';
 $user = 'root';
-$pass = '';
+$pass = 'root';
 $charset = 'utf8mb4';
+
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
 $opt = [
@@ -36,6 +40,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['selected_option'])) {
         exit;
     }
 }
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $patient_id = $_POST['patient_id'];
+    $medicine_name = $_POST['medicine_name'];
+    $manufacturer = $_POST['manufacturer'];
+    $unit_price = $_POST['unit_price'];
+    $quantity = $_POST['quantity'];
+
+    // Check if the medicine already exists in the cart for the specific user
+    $sql = "SELECT * FROM cart WHERE patient_id = ? AND medicine_name = ?";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$patient_id, $medicine_name]);
+    $existing_medicine = $stmt->fetch();
+
+    if ($existing_medicine) {
+        // The medicine already exists in the cart for the specific user
+        $_SESSION['error_message'] = 'The medicine already exists in the cart.';
+        header('Location: brandPage.php');
+        exit;
+    }
+
+    // Calculate the total price
+    $total_price = $unit_price * $quantity;
+
+    $sql = "INSERT INTO cart (patient_id, medicine_name, manufacturer, unit_price, total_price, total_unit, buying_status) VALUES (?, ?, ?, ?, ?, ?, 'unbought')";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$patient_id, $medicine_name, $manufacturer, $unit_price, $total_price, $quantity]);
+    header('Location: medicineCart.php');
+    exit;
+}
 ?>
 
 <!DOCTYPE html>
@@ -43,11 +76,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['selected_option'])) {
 <head>
     <link rel="stylesheet" href="css/brandPage.css">
     <title><?php echo htmlspecialchars($medicine['brand_name']); ?></title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
 <div class="topnav">
-    <a href="index.php">Home</a>
+    <a href="patientHomepage.php">Home</a>
     <a href="medicineCat.php">Medicine Catalog</a>
+    <a href="medicineCart.php">Go to Cart</a>
 
     <div class="search-panel">
         <form action="" method="get" id="search_form">
@@ -57,14 +92,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['selected_option'])) {
             </select>
             <input type="text" name="search_query" id="search_query" placeholder="Search...">
             <input type="hidden" name="selected_option" id="selected_option" value="brand_name">
+            <script>
+                document.getElementById('search_type').addEventListener('change', function() {
+                    document.getElementById('selected_option').value = this.value;
+                });
+            </script>
             <button type="submit">Search</button>
         </form>
     </div>
 </div>
 <div class="container">
+
     <h1><?php echo htmlspecialchars($medicine['brand_name']); ?></h1>
-    <a  style="text-decoration: none; color: indianred; " href="genericNameSearch.php?generic_name=<?php echo urlencode($medicine['generic']); ?>">
+    <a style="text-decoration: none; color: indianred;" href="genericPage.php?generic_name=<?php echo urlencode($medicine['generic']); ?>">
         <?php echo htmlspecialchars($medicine['generic']); ?>
+    </a>
+    <a style="text-decoration: none; color: indianred; margin-left: 10px;" href="alternateBrand.php?generic_name=<?php echo urlencode($medicine['generic']); ?>">
+        View all brands with this generic
     </a>
 
     <br><a  style="text-decoration: none; color: indianred; " href="manufaCat.php?manufacturer=<?php echo urlencode($medicine['manufacturer']); ?>"><?php echo htmlspecialchars($medicine['manufacturer']); ?></a>
@@ -80,6 +124,51 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['selected_option'])) {
         }
         ?>
     </small>
+    <div class="product-card">
+        <h1><?php echo htmlspecialchars($medicine['brand_name']); ?> <span class="dosage"><?php echo htmlspecialchars($medicine['strength']); ?></span></h1>
+        <div><a class="ingredient"><?php echo htmlspecialchars($medicine['generic']); ?></a></div>
+        <div class="manufacturer"><?php echo htmlspecialchars($medicine['manufacturer']); ?></div>
+        <div class="price"><?php echo htmlspecialchars($medicine['price']); ?> <span class="per-piece"><?php echo $medicine['unit'] == 1 ? '/Piece' : htmlspecialchars($medicine['unit']); ?></span></div>
+
+        <form id="dataForm" action="brandPage.php" method="post">
+            <input type="hidden" name="patient_id" value="<?php echo $user_id; ?>">
+            <input type="hidden" name="medicine_name" value="<?php echo htmlspecialchars($medicine['brand_name']); ?>">
+            <input type="hidden" name="manufacturer" value="<?php echo htmlspecialchars($medicine['manufacturer']); ?>">
+            <input type="hidden" name="unit_price" value="<?php echo htmlspecialchars($medicine['price']); ?>">
+            <input type="number" name="quantity" id="quantity" value="1" min="1">
+            <button type="submit" class="added-to-cart">Add to cart</button>
+        </form>
+        <script>
+            <?php if (isset($_SESSION['error_message'])): ?>
+            var errorMessage = "<?php echo $_SESSION['error_message']; unset($_SESSION['error_message']); ?>";
+            alert(errorMessage);
+            <?php endif; ?>
+        </script>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        function changeQuantity(amount) {
+            var quantityInput = document.getElementById('quantity');
+            var currentQuantity = parseInt(quantityInput.value);
+            if (currentQuantity + amount >= 1) {
+                quantityInput.value = currentQuantity + amount;
+            }
+            updateTotalPrice();
+        }
+
+        function updateTotalPrice() {
+            var quantityInput = document.getElementById('quantity');
+            var currentQuantity = parseInt(quantityInput.value);
+            var pricePerUnit = <?php echo htmlspecialchars($medicine['price']); ?>;
+            var totalPrice = currentQuantity * pricePerUnit;
+            document.getElementById('total-price').textContent = totalPrice.toFixed(2);
+        }
+
+        // Call updateTotalPrice on page load to initialize the total price
+
+
+        });
+    </script>
     <div class="info-section">
         <h2 class="info-title">Dosage Form</h2>
         <p><?php echo htmlspecialchars($medicine['dosage_form']); ?></p>

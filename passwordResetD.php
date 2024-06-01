@@ -5,7 +5,7 @@ require 'phpMailer.php'; // Include the phpMailer file
 // Include database connection
 $servername = "localhost";
 $username = "root";
-$password = "";
+$password = "root";
 $database = "TreatWell";
 
 // Create connection

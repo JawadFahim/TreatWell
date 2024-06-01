@@ -1,4 +1,6 @@
-
+<?php
+session_start();
+?>
 <!DOCTYPE html>
 
 <html lang="en">
@@ -9,8 +11,8 @@
             href="https://cdn.jsdelivr.net/npm/remixicon@3.4.0/fonts/remixicon.css"
             rel="stylesheet"
     />
-    <link rel="stylesheet" href="index.css" />
-    <title>TreatWell Homepage</title>
+    <link rel="stylesheet" href="css/patientHomepage.css" />
+    <title>TreatWell</title>
 </head>
 
 <body>
@@ -24,11 +26,12 @@
         <ul class="nav__links">
             <li class="link"><a href="DB_of_Doctors.php">Find A Doctor</a></li>
             <li class="link"><a href="appointment_list.php">Your Appointments</a></li>
-            <li class="link"><a href="#">Drugs</a></li>
+            <li class="link"><a href="medicineCat.php">Drugs</a></li>
             <li class="link"><a href="#">Health Tracker</a></li>
         </ul>
-        <button class="btn">Profile</button>
-    </nav>
+        <a href="patientProfile.php">
+            <button class="btn">Profile</button>
+        </a>    </nav>
 
     <div class="section__container header__container">
         <div class="header__content">
@@ -49,6 +52,12 @@
         $pass = 'root';
         $charset = 'utf8mb4';
 
+        include "connection.php";
+        global $conn;
+
+        // Retrieve the username from the session variable
+        $username = $_SESSION["username"];
+        $user_id = $_SESSION["user_id"];
         $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
         $opt = [
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
@@ -78,7 +87,7 @@
         $stmt->execute();
         $doctorDetails = $stmt->fetchAll();
 
-        $sql = "SELECT DISTINCT common_speciality FROM doctorinfo";
+        $sql = "SELECT speciality from common_speciality";
         $stmt = $pdo->prepare($sql);
         $stmt->execute();
         $commonSpecialties = $stmt->fetchAll();
@@ -92,7 +101,7 @@
                 <select id="common_speciality" name="common_speciality">
                     <option value="">Select Speciality</option>
                     <?php foreach ($commonSpecialties as $commonSpeciality): ?>
-                        <option value="<?= htmlspecialchars($commonSpeciality['common_speciality']) ?>"><?= htmlspecialchars($commonSpeciality['common_speciality']) ?></option>
+                        <option value="<?= htmlspecialchars($commonSpeciality['speciality']) ?>"><?= htmlspecialchars($commonSpeciality['speciality']) ?></option>
                     <?php endforeach; ?>
                 </select>
                 <button class="btn form__btn" type="submit">Search by Department</button>
@@ -136,11 +145,11 @@
                 </div>
                 <div class="service__card">
                     <span><i class="ri-hospital-line"></i></span>
-                    <h4>General Dentistry</h4>
+                    <h4>General Medicine</h4>
                     <p>
-                        You can see the medicines available in our pharmacy.
+                       Check and Buy medicine
                     </p>
-                    <a href="Drugs.php">Medicine</a>
+                    <a href="medicineCat.php">Medicine</a>
                 </div>
             </div>
 <!--</section>

@@ -68,7 +68,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             $_SESSION["username"] = $username;
 
                             // Redirect user to welcome page
-                            header("location: welcome.php");
+                            header("location: doctorHompage.php");
                             exit();
                         } else {
                             // Display an error message if password is not valid
@@ -102,7 +102,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Form | Dan Aleko</title>
+    <title>Treatwell Login</title>
     <link rel="stylesheet" href="css/patientLogin.css">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 </head>
@@ -125,7 +125,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <?php endif; ?>
         </div>
         <div class="remember-forgot">
-            <a href="#">Forgot Password</a>
+            <a href="passwordResetD.php">Forgot Password</a>
+        </div>
+        <div class="register-link">
+            <p>Dont have an account? <a href="doctorRegister.php">Register</a></p>
         </div>
         <button type="submit" class="submit" name="signin">Login</button>
 

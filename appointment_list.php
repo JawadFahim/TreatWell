@@ -88,6 +88,7 @@ $result = $stmt->get_result();
             }
         }
     </script>
+    <title> Appointment List </title>
 </head>
 <body>
 <div class="confirmation">

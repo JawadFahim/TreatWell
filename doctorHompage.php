@@ -1,4 +1,6 @@
-
+<?php
+session_start();
+?>
 <!DOCTYPE html>
 
 <html lang="en">
@@ -9,8 +11,8 @@
         href="https://cdn.jsdelivr.net/npm/remixicon@3.4.0/fonts/remixicon.css"
         rel="stylesheet"
     />
-    <link rel="stylesheet" href="index.css" />
-    <title>TreatWell Homepage</title>
+    <link rel="stylesheet" href="css/patientHomepage.css" />
+    <title>TreatWell</title>
 </head>
 
 <body>
@@ -27,7 +29,9 @@
             <li class="link"><a href="#">Drugs</a></li>
             <li class="link"><a href="#">Health Tracker</a></li>
         </ul>
-        <button class="btn">Profile</button>
+        <a href="doctorProfile.php">
+            <button class="btn">Profile</button>
+        </a>
     </nav>
 
     <div class="section__container header__container">
@@ -149,17 +153,19 @@
             </section>
 
             <?php
-            // Database connection
+
+            $username = $_SESSION["username"];
+            $user_id= $_SESSION["user_id"];
             include 'connection.php';
             global $conn;
-            session_start();
-$username = $_SESSION["username"];
-$user_id= $_SESSION["user_id"];
+
             // Fetch the data
             $sql = "SELECT common_speciality, COUNT(*) as count FROM doctorinfo GROUP BY common_speciality";
             $stmt = $conn->prepare($sql);
             $stmt->execute();
-            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Fetch all results
+            $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
             // Prepare the data for Google Charts
             $rows = array();

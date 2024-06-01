@@ -1,8 +1,11 @@
 <?php
+session_start();
+$username = $_SESSION['username'];
+$user_id= $_SESSION['user_id'];
 $host = 'localhost';
 $db   = 'treatwell';
 $user = 'root';
-$pass = '';
+$pass = 'root';
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
@@ -56,19 +59,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['selected_option'])) {
 <html lang="en">
 <head>
     <link rel="stylesheet" href="css/medicineCat.css">
-    <title></title>
+    <title>All medicines</title>
 </head>
 <body>
-<div class="search-panel">
-    <form action="" method="get" id="search_form">
-        <select name="search_type" id="search_type">
-            <option value="brand_name" selected>Brand Name</option>
-            <option value="generic">Generic Name</option>
-        </select>
-        <input type="text" name="search_query" id="search_query" placeholder="Search...">
-        <input type="hidden" name="selected_option" id="selected_option" value="brand_name">
-        <button type="submit">Search</button>
-    </form>
+<div class="topnav">
+    <a href="patientHomepage.php">Home</a>
+    <a href="medicineCat.php">Medicine Catalog</a>
+    <a href="medicineCart.php">Go to Cart</a>
+    <div class="search-panel">
+        <form action="" method="get" id="search_form">
+            <select name="search_type" id="search_type">
+                <option value="brand_name" selected>Brand Name</option>
+                <option value="generic">Generic Name</option>
+            </select>
+            <input type="text" name="search_query" id="search_query" placeholder="Search...">
+            <input type="hidden" name="selected_option" id="selected_option" value="brand_name">
+            <script>
+                document.getElementById('search_type').addEventListener('change', function() {
+                    document.getElementById('selected_option').value = this.value;
+                });
+            </script>
+            <button type="submit">Search</button>
+        </form>
+    </div>
 </div>
 
 <div class="container">
@@ -86,8 +99,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['selected_option'])) {
 
 <div class="pagination">
     <?php
-    $start = max(1, $page);
-    $end = min($start + 9, $num_pages);
+    $start = max(1, $page - 2);
+    $end = min($num_pages, $page + 2);
     for ($p = $start; $p <= $end; $p++): ?>
         <a href="?page=<?php echo $p; ?>" class="<?php echo $p == $page ? 'active' : ''; ?>"><?php echo $p; ?></a>
     <?php endfor; ?>

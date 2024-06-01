@@ -2,7 +2,7 @@
 $host = 'localhost';
 $db   = 'treatwell';
 $user = 'root';
-$pass = '';
+$pass = 'root';
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
@@ -46,9 +46,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['selected_option'])) {
 </head>
 <body>
 <div class="topnav">
-    <a href="index.php">Home</a>
+    <a href="patientHomepage.php">Home</a>
     <a href="medicineCat.php">Medicine Catalog</a>
-
+    <a href="medicineCart.php">Go to Cart</a>
     <div class="search-panel">
         <form action="" method="get" id="search_form">
             <select name="search_type" id="search_type">

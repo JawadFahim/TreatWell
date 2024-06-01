@@ -2,7 +2,7 @@
 $host = 'localhost';
 $db   = 'treatwell';
 $user = 'root';
-$pass = '';
+$pass = 'root';
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
@@ -61,19 +61,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['selected_option'])) {
 <html lang="en">
 <head>
     <link rel="stylesheet" href="css/medicineCat.css">
-    <title>Search Results</title>
+    <title>Brand Names</title>
 </head>
 <body>
-<div class="search-panel">
-    <form action="" method="get" id="search_form">
-        <select name="search_type" id="search_type">
-            <option value="brand_name" selected>Brand Name</option>
-            <option value="generic">Generic Name</option>
-        </select>
-        <input type="text" name="search_query" id="search_query" placeholder="Search...">
-        <input type="hidden" name="selected_option" id="selected_option" value="brand_name">
-        <button type="submit">Search</button>
-    </form>
+<div class="topnav">
+    <a href="patientHomepage.php">Home</a>
+    <a href="medicineCat.php">Medicine Catalog</a>
+    <a href="medicineCart.php">Go to Cart</a>
+
+    <div class="search-panel">
+        <form action="" method="get" id="search_form">
+            <select name="search_type" id="search_type">
+                <option value="brand_name" selected>Brand Name</option>
+                <option value="generic">Generic Name</option>
+            </select>
+            <input type="text" name="search_query" id="search_query" placeholder="Search...">
+            <input type="hidden" name="selected_option" id="selected_option" value="brand_name">
+            <script>
+                document.getElementById('search_type').addEventListener('change', function() {
+                    document.getElementById('selected_option').value = this.value;
+                });
+            </script>
+            <button type="submit">Search</button>
+        </form>
+    </div>
 </div>
 <div class="container">
     <?php foreach ($medicines as $medicine): ?>
