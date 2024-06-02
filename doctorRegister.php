@@ -101,38 +101,52 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
     // Check input errors before inserting in database
-    if (empty($doctorName_err) && empty($gender_err) && empty($doctorEmail_err)&& empty($doctorPhone_err) && empty($doctorUsername_err) && empty($doctorPassword_err) && empty($confirmedPassword_err)) {
-        // Prepare an INSERT statement
-        $sql = "INSERT INTO Doctor_login (DoctorName, Gender, DoctorEmail,  DoctorPhone,  DoctorUsername,  DoctorPassword, regNo) VALUES (?, ?, ?, ?,?, ?, ?)";
-
-        if ($stmt = $conn->prepare($sql)) {
-            // Bind variables to the prepared statement as parameters
-            //$stmt->bind_param("ss", $param_doctorName, $param_gender, /* ... */, $param_doctorPassword);
-            $stmt->bind_param("sssssss", $param_doctorName, $param_gender, $param_doctorEmail,  $param_doctorPhone,  $param_doctorUsername, $param_doctorPassword, $param_BMDCRegNumber);
-            // Set parameters
-            $param_BMDCRegNumber = $BMDCRegNumber;
-
-            $param_doctorName = $doctorName;
-            $param_gender = $gender;
-
-            $param_doctorEmail = $doctorEmail;
-
-            $param_doctorPhone = $doctorPhone;
-
-            $param_doctorUsername = $doctorUsername;
-            $param_doctorPassword = $doctorPassword;
-
-            // Attempt to execute the prepared statement
-            if ($stmt->execute()) {
-                // Redirect to login page
-                header("location: doctorLogin.php");
+    // Prepare a SELECT statement to fetch the id from doctorinfo where regNo matches
+    $sql = "SELECT id FROM doctorinfo WHERE regNo = ?";
+    if ($stmt = $conn->prepare($sql)) {
+        // Bind variables to the prepared statement as parameters
+        $stmt->bind_param("s", $param_BMDCRegNumber);
+        // Set parameters
+        $param_BMDCRegNumber = $BMDCRegNumber;
+        // Execute the statement
+        if ($stmt->execute()) {
+            // Store the result
+            $stmt->store_result();
+            // Check if a matching id was found
+            if ($stmt->num_rows == 1) {
+                // Bind the result to a variable
+                $stmt->bind_result($id_from_doctorinfo);
+                $stmt->fetch();
+                // Use the fetched id for the INSERT into doctor_login
+                $sql = "INSERT INTO Doctor_login (id, DoctorName, Gender, DoctorEmail, DoctorPhone, DoctorUsername, DoctorPassword, regNo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                if ($stmt_insert = $conn->prepare($sql)) {
+                    // Bind variables to the prepared statement as parameters
+                    $stmt_insert->bind_param("isssssss", $id_from_doctorinfo, $param_doctorName, $param_gender, $param_doctorEmail, $param_doctorPhone, $param_doctorUsername, $param_doctorPassword, $param_BMDCRegNumber);
+                    // Set the rest of the parameters as before
+                    $param_doctorName = $doctorName;
+                    $param_gender = $gender;
+                    $param_doctorEmail = $doctorEmail;
+                    $param_doctorPhone = $doctorPhone;
+                    $param_doctorUsername = $doctorUsername;
+                    $param_doctorPassword = $doctorPassword;
+                    // Attempt to execute the prepared statement
+                    if ($stmt_insert->execute()) {
+                        // Redirect to login page
+                        header("location: doctorLogin.php");
+                    } else {
+                        echo "Something went wrong. Please try again later.";
+                    }
+                    // Close the insert statement
+                    $stmt_insert->close();
+                }
             } else {
-                echo "Something went wrong. Please try again later.";
+                echo "No matching id found in doctorinfo for the provided regNo.";
             }
-
-            // Close statement
-            $stmt->close();
+        } else {
+            echo "Something went wrong. Please try again later.";
         }
+        // Close the select statement
+        $stmt->close();
     }
 
     // Close connection
